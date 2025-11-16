@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>مذكّرتنا — موقع خاص</title>
+  <style>
+    :root{
+      --bg: #fff8fb;
+      --card: #ffffff;
+      --accent: #ff6f91;
+      --accent-2: #ff9bb3;
+      --muted: #7a7a86;
+      --glass: rgba(255,255,255,0.7);
+      font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{background:linear-gradient(180deg,var(--bg),#fff);min-height:100vh;margin:0;padding:24px;}
+    .wrap{max-width:920px;margin:18px auto}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:grid;place-items:center;color:#fff;font-weight:700;font-size:20px}
+    h1{margin:0;font-size:20px}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
+
+    /* Card */
+    .card{background:var(--card);border-radius:14px;padding:18px;box-shadow:0 6px 22px rgba(80,40,80,0.06);margin-top:18px}
+
+    /* Login */
+    .center{display:grid;place-items:center;padding:40px}
+    .form-row{display:flex;gap:8px;align-items:center}
+    input[type=password],input[type=text],textarea{width:100%;padding:12px;border-radius:8px;border:1px solid #eee;font-size:14px}
+    button{background:var(--accent);color:#fff;border:0;padding:10px 14px;border-radius:10px;cursor:pointer}
+    button.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+
+    /* Main app */
+    .app-grid{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-top:18px}
+    .compose textarea{min-height:120px}
+    .meta{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-top:10px}
+    .msgs{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+    .msg{padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,250,253,0.9));border:1px solid rgba(255,110,144,0.08)}
+    .msg .date{color:var(--muted);font-size:12px;margin-bottom:6px}
+    .controls{display:flex;gap:8px}
+
+    /* right column */
+    .panel{display:flex;flex-direction:column;gap:10px}
+    .small{font-size:13px;color:var(--muted)}
+
+    footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
+
+    @media(max-width:880px){
+      .app-grid{grid-template-columns:1fr;}
+      header{flex-direction:column;align-items:flex-start}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo">❤</div>
+        <div>
+          <h1>مذكّرتنا — خاص بينا</h1>
+          <p class="lead">مكان آمن لكتابة كلامكم الحلو — بكلمة سر وبحفظ محلي.</p>
+        </div>
+      </div>
+      <div>
+        <button id="btn-logout" style="display:none">تسجيل الخروج</button>
+      </div>
+    </header>
+
+    <!-- Login / Setup -->
+    <div id="screen-login" class="card center">
+      <h2 id="login-title">مرحبا — إعداد كلمة السر</h2>
+      <p class="small">هذا الموقع يعمل محلياً على متصفحك. كلمة السر ستُخزّن مُشفّرة على جهازك فقط.</p>
+      <div style="width:100%;max-width:560px;margin-top:16px">
+        <div id="set-password-area">
+          <label>أنشئ كلمة سر مشتركة (يجب أن تتذكرها كلاكما)</label>
+          <div style="height:8px"></div>
+          <input id="pass-setup" type="password" placeholder="أدخل كلمة السر" />
+          <div style="height:8px"></div>
+          <input id="pass-setup-confirm" type="password" placeholder="أعد كتابة كلمة السر" />
+          <div style="height:12px"></div>
+          <div style="display:flex;gap:8px">
+            <button id="btn-setpass">حفظ وكمل</button>
+            <button id="btn-sample" class="ghost">استخدم كلمة مؤقتة (demo)</button>
+          </div>
+        </div>
+
+        <div id="login-area" style="display:none">
+          <label>أدخل كلمة السر للدخول</label>
+          <div style="height:8px"></div>
+          <input id="pass-login" type="password" placeholder="كلمة السر" />
+          <div style="height:12px"></div>
+          <div style="display:flex;gap:8px">
+            <button id="btn-login">دخول</button>
+            <button id="btn-reset" class="ghost">إعادة تعيين (حذف الموقع)</button>
+          </div>
+        </div>
+
+        <p class="small" style="margin-top:12px">ملاحظة: إذا فقدت كلمة السر ولم تقم بعمل تصدير للبيانات، فلا يمكن استعادتها لأننا نحمي الخصوصية بتشفير محلي.</p>
+      </div>
+    </div>
+
+    <!-- App -->
+    <div id="screen-app" style="display:none">
+      <div class="app-grid">
+        <div>
+          <div class="card compose">
+            <label style="font-weight:600">اكتب رسالة جديدة</label>
+            <textarea id="new-text" placeholder="اكتب لها كلمة... مثلاً: اليوم افتكرتك لأن..."></textarea>
+            <div class="meta">
+              <div style="display:flex;gap:8px;align-items:center">
+                <label><input type="checkbox" id="mark-private" /> خاصة</label>
+                <label><input type="checkbox" id="mark-secret" /> مؤجلة للعرض (تظهر فقط عند الفتح الأول بعد التاريخ)</label>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button id="btn-add">أضف</button>
+                <button id="btn-clear" class="ghost">مسح الحقل</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <h3 style="margin:0">الرسائل</h3>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input id="filter" type="text" placeholder="ابحث..." style="padding:8px;border-radius:8px;border:1px solid #eee" />
+                <button id="btn-export" class="ghost">تصدير (JSON)</button>
+              </div>
+            </div>
+            <div id="msgs" class="msgs"></div>
+          </div>
+        </div>
+
+        <aside>
+          <div class="card panel">
+            <div>
+              <strong>لوحة التحكم</strong>
+              <p class="small">إعدادات وحماية</p>
+            </div>
+            <div>
+              <div class="small">عدد الرسائل: <span id="count">0</span></div>
+              <div class="small">آخر حفظ: <span id="lastsave">—</span></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <button id="btn-download" class="ghost">تحميل نسخة (JSON)</button>
+              <button id="btn-clear-all" class="ghost">حذف كل الرسائل</button>
+              <button id="btn-change-pass">تغيير كلمة السر</button>
+            </div>
+            <div style="height:8px"></div>
+            <div>
+              <small class="small">طريقة الاستخدام الآمنة:</small>
+              <ul style="margin:8px 0 0 0;padding-left:18px;color:var(--muted)">
+                <li>الموقع يخزّن بياناتك محلياً فقط على متصفحك.</li>
+                <li>لا تشارك كلمة السر مع أي شخص غير المطلوب.</li>
+                <li>استخدم زر التصدير للحفاظ على نسخة احتياطية.</li>
+              </ul>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <footer class="card">
+        <small>تم إنشاؤه لكما — احتفظوا بالحب والنية الطيبة. ✨</small>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    // Simple client-side app with password protection (hashed) and localStorage persistence.
+    // Not a server. For private use on your device or static hosting.
+
+    const LS_KEY = 'mzk_private_notes_v1';
+    const LS_PASS = 'mzk_private_hash_v1';
+
+    const el = id=>document.getElementById(id);
+    const screenLogin = el('screen-login');
+    const screenApp = el('screen-app');
+    const btnLogout = el('btn-logout');
+
+    // util: format date
+    function fmt(d){
+      const dt = new Date(d);
+      return dt.toLocaleString('ar-EG');
+    }
+
+    // crypto helpers: SHA-256 hex
+    async function hashText(txt){
+      const enc = new TextEncoder();
+      const data = enc.encode(txt);
+      const hash = await crypto.subtle.digest('SHA-256', data);
+      const arr = Array.from(new Uint8Array(hash));
+      return arr.map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+
+    // storage
+    function loadData(){
+      const raw = localStorage.getItem(LS_KEY);
+      if(!raw) return {messages:[]};
+      try{return JSON.parse(raw)}catch(e){return {messages:[]}}
+    }
+    function saveData(data){
+      localStorage.setItem(LS_KEY, JSON.stringify(data));
+      el('lastsave').textContent = new Date().toLocaleString();
+    }
+
+    // UI render
+    function renderMessages(filter=''){
+      const box = el('msgs'); box.innerHTML='';
+      const data = loadData();
+      const msgs = data.messages || [];
+      el('count').textContent = msgs.length;
+      const q = filter.trim().toLowerCase();
+      msgs.slice().reverse().forEach((m,i)=>{
+        if(q && !(m.text.toLowerCase().includes(q) || (m.tag||'').toLowerCase().includes(q))) return;
+        const div = document.createElement('div'); div.className='msg';
+        const date = document.createElement('div'); date.className='date'; date.textContent = fmt(m.created);
+        const txt = document.createElement('div'); txt.innerHTML = m.text.replace(/\n/g,'<br>');
+        const meta = document.createElement('div'); meta.style.marginTop='8px'; meta.style.display='flex'; meta.style.justifyContent='space-between';
+        const left = document.createElement('div'); left.className='small'; left.textContent = m.private? 'خاصة' : (m.tag||'');
+        const right = document.createElement('div'); right.className='controls';
+        const bEdit = document.createElement('button'); bEdit.textContent='تعديل'; bEdit.className='ghost';
+        const bDel = document.createElement('button'); bDel.textContent='حذف'; bDel.className='ghost';
+        right.appendChild(bEdit); right.appendChild(bDel);
+        meta.appendChild(left); meta.appendChild(right);
+
+        bDel.onclick = ()=>{
+          if(!confirm('تأكيد حذف الرسالة؟')) return;
+          const d = loadData(); d.messages.splice(d.messages.indexOf(m),1); saveData(d); renderMessages(el('filter').value);
+        }
+        bEdit.onclick = ()=>{
+          const newText = prompt('عدل النص:', m.text);
+          if(newText==null) return;
+          m.text = newText;
+          saveData(loadData()); renderMessages(el('filter').value);
+        }
+
+        div.appendChild(date); div.appendChild(txt); div.appendChild(meta);
+        box.appendChild(div);
+      });
+    }
+
+    // init
+    (async function(){
+      const passHash = localStorage.getItem(LS_PASS);
+      if(!passHash){
+        // show setup
+        el('login-title').textContent = 'أهلاً — أنشئ كلمة السر المشتركة';
+        el('set-password-area').style.display='block';
+        el('login-area').style.display='none';
+      } else {
+        el('set-password-area').style.display='none';
+        el('login-area').style.display='block';
+        el('login-title').textContent = 'أدخل كلمة السر للدخول';
+      }
+
+      // buttons
+      el('btn-setpass').onclick = async ()=>{
+        const a = el('pass-setup').value.trim();
+        const b = el('pass-setup-confirm').value.trim();
+        if(!a){alert('يجب إدخال كلمة سر.');return}
+        if(a!==b){alert('التحقق: الكلمتان غير متطابقتين.');return}
+        const h = await hashText(a);
+        localStorage.setItem(LS_PASS,h);
+        // init empty data
+        if(!localStorage.getItem(LS_KEY)) saveData({messages:[]});
+        alert('تم تعيين كلمة السر - سجّل الدخول الآن.');
+        location.reload();
+      }
+
+      el('btn-sample').onclick = ()=>{
+        const t = prompt('اكتب كلمة مؤقتة للتجربة (لن تكون آمنة):','demo'); if(!t) return;
+        hashText(t).then(h=>{localStorage.setItem(LS_PASS,h); if(!localStorage.getItem(LS_KEY)) saveData({messages:[]}); alert('تم تعيين كلمة مؤقتة. استخدمها للدخول.'); location.reload();})
+      }
+
+      el('btn-login').onclick = async ()=>{
+        const v = el('pass-login').value.trim(); if(!v){alert('ادخل كلمة السر');return}
+        const h = await hashText(v); const stored = localStorage.getItem(LS_PASS);
+        if(h===stored){
+          // success
+          screenLogin.style.display='none'; screenApp.style.display='block'; btnLogout.style.display='inline-block';
+          renderMessages();
+        } else alert('كلمة السر خاطئة.');
+      }
+
+      el('btn-reset').onclick = ()=>{
+        if(!confirm('سيتم حذف كل شيء (الرسائل وكلمة السر) من هذا المتصفح. هل أنت متأكد؟')) return;
+        localStorage.removeItem(LS_PASS); localStorage.removeItem(LS_KEY); alert('تمت إعادة التعيين.'); location.reload();
+      }
+
+      btnLogout.onclick = ()=>{ screenApp.style.display='none'; screenLogin.style.display='block'; btnLogout.style.display='none'; el('pass-login').value=''; }
+
+      // App events
+      el('btn-add').onclick = ()=>{
+        const txt = el('new-text').value.trim(); if(!txt){alert('اكتب شيء أولاً');return}
+        const data = loadData();
+        data.messages = data.messages || [];
+        data.messages.push({text:txt,private:el('mark-private').checked,tag:el('mark-secret').checked? 'مؤجلة':'' ,created:new Date().toISOString()});
+        saveData(data); el('new-text').value=''; el('mark-private').checked=false; el('mark-secret').checked=false; renderMessages();
+      }
+      el('btn-clear').onclick = ()=>{el('new-text').value='';}
+      el('filter').oninput = e=>renderMessages(e.target.value);
+      el('btn-export').onclick = ()=>{ const data = loadData(); const blob = new Blob([JSON.stringify(data, null, 2)],{type:'application/json'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='mzk-notes-export.json'; a.click(); }
+      el('btn-download').onclick = ()=>{ el('btn-export').click(); }
+      el('btn-clear-all').onclick = ()=>{ if(!confirm('حذف كل الرسائل؟ هذا الإجراء لا يمكن التراجع عنه.')) return; saveData({messages:[]}); renderMessages(); }
+
+      el('btn-change-pass').onclick = ()=>{
+        if(!confirm('ستحتاج لتعيين كلمة سر جديدة الآن. بعد التغيير لن تستطيع الدخول بالكلمة القديمة. موافق؟')) return;
+        // simple flow: delete old pass and reload to setup
+        localStorage.removeItem(LS_PASS); alert('تمت إزالة كلمة السر القديمة. الرجاء تعيين كلمة سر جديدة.'); location.reload();
+      }
+
+      // auto-load lastsave
+      const data = loadData(); if(data && data._meta && data._meta.lastsave) el('lastsave').textContent = data._meta.lastsave; else el('lastsave').textContent='—';
+
+    })();
+  </script>
+</body>
+</html>
