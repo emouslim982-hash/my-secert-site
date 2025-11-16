@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مراسلة سرية</title>
+    <!-- CSS مدمج -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #8B0000; /* أحمر كلاسيكي */
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .login-container, .chat-container {
+            background-color: #b22222;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 0 10px #000;
+        }
+
+        input[type="password"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #ff4500;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: white;
+        }
+
+        button:hover {
+            background-color: #ff6347;
+        }
+
+        .messages {
+            height: 300px;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            background-color: #800000;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body>
+    <div class="login-container" id="loginContainer">
+        <h2>أدخل كلمة السر</h2>
+        <input type="password" id="passwordInput" placeholder="كلمة السر">
+        <button onclick="login()">دخول</button>
+        <p id="loginError"></p>
+    </div>
+
+    <div class="chat-container" id="chatContainer" style="display:none;">
+        <h2>المراسلة السرية</h2>
+        <div id="messages" class="messages"></div>
+        <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا">
+        <button onclick="sendMessage()">إرسال</button>
+    </div>
+
+    <!-- JavaScript مدمج -->
+    <script>
+        // 🔑 كلمة السر المشتركة
+        const PASSWORD = "mousjojo2025";
+
+        // Firebase Configuration (مفتاح عام للتجربة)
+        const firebaseConfig = {
+          apiKey: "AIzaSyCkD-EXAMPLE-KEY",
+          authDomain: "chat-demo-12345.firebaseapp.com",
+          databaseURL: "https://chat-demo-12345-default-rtdb.firebaseio.com",
+          projectId: "chat-demo-12345",
+          storageBucket: "chat-demo-12345.appspot.com",
+          messagingSenderId: "1234567890",
+          appId: "1:1234567890:web:abcdef123456"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        const messagesRef = db.ref("messages");
+
+        // تسجيل الدخول
+        function login() {
+            const input = document.getElementById("passwordInput").value;
+            if(input === PASSWORD){
+                document.getElementById("loginContainer").style.display = "none";
+                document.getElementById("chatContainer").style.display = "block";
+                loadMessages();
+            } else {
+                document.getElementById("loginError").innerText = "كلمة السر غير صحيحة!";
+            }
+        }
+
+        // إرسال رسالة
+        function sendMessage() {
+            const message = document.getElementById("messageInput").value.trim();
+            if(message){
+                messagesRef.push({ text: message, timestamp: Date.now() });
+                document.getElementById("messageInput").value = "";
+            }
+        }
+
+        // تحميل الرسائل وعرضها في الوقت الحقيقي
+        function loadMessages() {
+            messagesRef.on("value", snapshot => {
+                const messagesDiv = document.getElementById("messages");
+                messagesDiv.innerHTML = "";
+                snapshot.forEach(msg => {
+                    const m = msg.val();
+                    const p = document.createElement("p");
+                    const date = new Date(m.timestamp).toLocaleTimeString();
+                    p.textContent = `[${date}] ${m.text}`;
+                    messagesDiv.appendChild(p);
+                });
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            });
+        }
+    </script>
+</body>
+</html>
